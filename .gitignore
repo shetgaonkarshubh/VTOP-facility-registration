@@ -1,0 +1,31 @@
+# Environment configuration and secrets (CRITICAL)
+.env
+*.env
+!.env.example
+
+# Python virtual environment & cache
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Browser Profiles and session cache (contains login tokens, cookies, history)
+firefox_profile/
+*.profile/
+catche/
+VTOP-Captcha-Solver/
+
+# Temporary and local debugging files
+*.log
+*.har
+login_page.html
+navbar_services.html
+facility_table.html
+*.tmp
+
+# Operating System files
+.DS_Store
+Thumbs.db
