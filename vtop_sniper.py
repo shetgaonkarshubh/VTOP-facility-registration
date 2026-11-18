@@ -59,6 +59,12 @@ def parse_arguments():
         help="Monitoring loop duration in seconds. Default: 300 (5 minutes)",
     )
     parser.add_argument(
+        "-l",
+        "--login-only",
+        action="store_true",
+        help="Only assist with logging in; stop at the dashboard and do not open facility registration.",
+    )
+    parser.add_argument(
         "--non-interactive",
         action="store_true",
         help="Skip terminal selection menu and use default from .env or 'Swimming Men'.",
@@ -165,17 +171,7 @@ def prefill_credentials_and_wait_for_login(page: Page, username: str, password: 
         user_locator.fill(username)
         pwd_locator.fill(password)
 
-    if captcha_locator.count() > 0:
-        print("[INFO] Focusing cursor into the CAPTCHA field...")
-        captcha_locator.focus()
-
-    print("\n" + "=" * 60)
-    print(">>> MANUAL STEP REQUIRED <<<")
-    print("1. Complete any verification/CAPTCHA shown in Firefox.")
-    print("2. Click 'Submit' (or press Enter).")
-    print("Waiting for dashboard redirect to /vtop/content...")
-    print("=" * 60 + "\n")
-
+        
     # 1. Locate the CAPTCHA input box
     captcha_input = page.locator("#captchaStr")
 
@@ -206,7 +202,14 @@ def prefill_credentials_and_wait_for_login(page: Page, username: str, password: 
         time.sleep(0.1)  # Check every 100ms
 
     # Wait for successful login redirect
-    page.wait_for_url("**/vtop/content", timeout=1000000)
+    page.wait_for_url("**/vtop/content", timeout=10000)
+
+    print("\n" + "=" * 60)
+    print(">>> MANUAL STEP REQUIRED <<<")
+    print("1. Complete any verification/CAPTCHA shown in Firefox.")
+    print("2. Click 'Submit' (or press Enter).")
+    print("Waiting for dashboard redirect to /vtop/content...")
+    print("=" * 60 + "\n")
 
     # Wait for the user to submit and land on the dashboard
     page.wait_for_url(DASHBOARD_URL_PATTERN, timeout=0)
@@ -378,6 +381,22 @@ def run():
 
         # Step 1: Pre-fill credentials and wait for human login
         prefill_credentials_and_wait_for_login(page, username, password)
+
+        # Login-only mode: Stop right here without opening facility registration
+        if args.login_only:
+            print("\n" + "=" * 60)
+            print("[INFO] Logged in successfully! (--login-only active)")
+            print("[INFO] Facility registration will NOT be opened.")
+            print("[INFO] Browser will remain open. Press Ctrl+C in terminal to exit.")
+            print("=" * 60 + "\n")
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                print("\n[INFO] Exiting...")
+            finally:
+                context.close()
+            return
 
         # Step 2: Set up dialog handler and keyboard shortcuts
         inject_dialog_handler_and_hotkeys(page)
